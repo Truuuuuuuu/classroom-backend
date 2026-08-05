@@ -5,8 +5,10 @@
     "lib": ["ES2022"],
 
     /* Node ESM */
-    "module": "ES2022",
-    "moduleResolution": "node",
+    // "module": "ES2022", depreacted
+    // "moduleResolution": "node", deprecated
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
 
     /* Project structure */
     "rootDir": "src",
