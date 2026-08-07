@@ -1,5 +1,14 @@
 import express from "express";
-import { or, ilike, and, sql, eq, getTableColumns, desc } from "drizzle-orm";
+import {
+  or,
+  ilike,
+  and,
+  sql,
+  eq,
+  getTableColumns,
+  desc,
+  count,
+} from "drizzle-orm";
 import { subjects, departments } from "../db/schema/index.js";
 import { db } from "../db/index.js";
 
@@ -10,13 +19,31 @@ router.get("/", async (req, res) => {
   try {
     const { search, department, page = 1, limit = 10 } = req.query;
 
-    const currentPage = Math.max(1, +page);
-    const limitPerPage = Math.max(1, +limit);
+    // const currentPage = Math.max(1, +page);
+    // const limitPerPage = Math.max(1, +limit);
 
+    // const offset = (currentPage - 1) * limitPerPage;
+
+    const currentPage = Number(page);
+    const requestedLimit = Number(limit);
+
+    if (
+      !Number.isSafeInteger(currentPage) ||
+      !Number.isSafeInteger(requestedLimit) ||
+      currentPage < 1 ||
+      requestedLimit < 1
+    ) {
+      return res.status(400).json({
+        error: "page and limit must be positive integers",
+      });
+    }
+
+    const limitPerPage = Math.min(requestedLimit, 100);
     const offset = (currentPage - 1) * limitPerPage;
 
     const filterConditions = [];
 
+    //If search query is provided, filter subjects by name OR code
     if (search) {
       filterConditions.push(
         or(
@@ -26,15 +53,17 @@ router.get("/", async (req, res) => {
       );
     }
 
+    //If department query is provided, filter subjects by department name
     if (department) {
       filterConditions.push(or(ilike(departments.name, `%${department}%`)));
     }
 
+    //combine all filter conditions using AND operator
     const whereClause =
       filterConditions.length > 0 ? and(...filterConditions) : undefined;
 
     const countResult = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({ count: count() })
       .from(subjects)
       .leftJoin(departments, eq(subjects.departmentId, departments.id))
       .where(whereClause);
