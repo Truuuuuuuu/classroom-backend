@@ -11,6 +11,7 @@ import {
 } from "drizzle-orm";
 import { subjects, departments } from "../db/schema/index.js";
 import { db } from "../db/index.js";
+import { parse } from "node:path";
 
 const router = express.Router();
 
@@ -19,26 +20,12 @@ router.get("/", async (req, res) => {
   try {
     const { search, department, page = 1, limit = 10 } = req.query;
 
-    // const currentPage = Math.max(1, +page);
-    // const limitPerPage = Math.max(1, +limit);
+    const currentPage = Math.max(1, parseInt(String(page), 10) || 1);
+    const limitPerPage = Math.max(
+      Math.max(1, parseInt(String(limit), 10) || 10),
+      100,
+    );
 
-    // const offset = (currentPage - 1) * limitPerPage;
-
-    const currentPage = Number(page);
-    const requestedLimit = Number(limit);
-
-    if (
-      !Number.isSafeInteger(currentPage) ||
-      !Number.isSafeInteger(requestedLimit) ||
-      currentPage < 1 ||
-      requestedLimit < 1
-    ) {
-      return res.status(400).json({
-        error: "page and limit must be positive integers",
-      });
-    }
-
-    const limitPerPage = Math.min(requestedLimit, 100);
     const offset = (currentPage - 1) * limitPerPage;
 
     const filterConditions = [];
@@ -55,7 +42,8 @@ router.get("/", async (req, res) => {
 
     //If department query is provided, filter subjects by department name
     if (department) {
-      filterConditions.push(or(ilike(departments.name, `%${department}%`)));
+      const deptPattern = `%${String(department).replace(/[%_]/g, "\\$&")}%`;
+      filterConditions.push(ilike(departments.name, deptPattern));
     }
 
     //combine all filter conditions using AND operator
