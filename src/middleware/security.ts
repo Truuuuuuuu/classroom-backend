@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import aj from "../config/arcject.js";
+import aj from "../config/arcjet.js";
 import { ArcjetNodeRequest, slidingWindow } from "@arcjet/node";
 
 const securityMiddleware = async (
@@ -40,7 +40,7 @@ const securityMiddleware = async (
       }),
     );
 
-    const arcjectRequest: ArcjetNodeRequest = {
+    const arcjetRequest: ArcjetNodeRequest = {
       headers: req.headers,
       method: req.method,
       url: req.originalUrl ?? req.url,
@@ -49,7 +49,7 @@ const securityMiddleware = async (
       },
     };
 
-    const decision = await client.protect(arcjectRequest);
+    const decision = await client.protect(arcjetRequest);
 
     if (decision.isDenied() && decision.reason.isBot()) {
       return res.status(403).json({
