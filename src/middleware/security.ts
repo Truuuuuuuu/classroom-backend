@@ -7,7 +7,7 @@ const securityMiddleware = async (
   res: Response,
   next: NextFunction,
 ) => {
-  if (process.env.NODE_EN === "test") return next();
+  if (process.env.NODE_ENV === "test") return next();
 
   try {
     const role: RateLimitRole = req.user?.role ?? "guest";
@@ -19,10 +19,12 @@ const securityMiddleware = async (
       case "admin":
         limit = 20;
         message = "Admin request limit exceeded (20 per minute) Slow down...";
+        break;
       case "teacher":
       case "student":
         limit = 10;
         message = "Admin request limit exceeded (10 per minute) Please wait...";
+        break;
       default:
         limit = 5;
         message =
@@ -64,7 +66,7 @@ const securityMiddleware = async (
     }
 
     if (decision.isDenied() && decision.reason.isRateLimit()) {
-      return res.status(403).json({
+      return res.status(429).json({
         error: "Too many request",
         message: message,
       });
@@ -75,7 +77,7 @@ const securityMiddleware = async (
     console.error("Arcject middleware erro:", error);
     res.status(500).json({
       error: "Internal error",
-      meesage: "Something went wrong with security middleware",
+      message: "Something went wrong with security middleware",
     });
   }
 };

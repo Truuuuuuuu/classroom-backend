@@ -1,7 +1,7 @@
 import arcjet, { shield, detectBot, slidingWindow } from "@arcjet/node";
 
-if (!process.env.ARJECT_KEY && process.env.NODE_ENV !== "test") {
-  throw new Error("ARJECT_KEY env is required");
+if (!process.env.ARCJECT_KEY && process.env.NODE_ENV !== "test") {
+  throw new Error("ARCJECT_KEY env is required");
 }
 
 const aj = arcjet({
